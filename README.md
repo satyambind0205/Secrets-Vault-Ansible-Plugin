@@ -9,15 +9,19 @@ PASM vault ANSIBLE plugin to fetch secrets from PASM vault to ANSIBLE playbook u
 
 1:- From vault side:
     
-    a:- Access policy with required permissions for the user.
+    a:- ‘Vault User Role’ Access policy configured on the secrets required to be pulled for the user.
 
-    b:- CACERT of Key-Control vault
+    b:- KCV CA Certificate :- CA Certificate that the external web server of KCV is using. Please refer below link to obtain
+    it.
+    
+  [How to download certificate ?](https://docs.hytrust.com/KeyControlVault/Online/Content/Books/Admin-Guide/KC-System-Config/Certificates/Downloading-a-KC-Certificate.html)
 
-    c:- API URL of vault and credentials.
+    c:- Login API URL of vault.The correct format for the API URL should be as follows:- `https://<IP>/vault/1.0/Login/<UUID>/`. Please refer below link to obtain
+  [How to get vault Login API URL ?](https://docs.hytrust.com/KeyControlVault/Online/Content/Books/Admin-Guide/Vault-Management/Retrieving-Vault-Details.html)
 
 2:- Ansible must be installed.
 
-3:- Python 3 must be installed and 'requests' module must be installed using 'pip'. Additionally, if the output is required in yaml format, then 'pyyaml' must be installed using 'pip'.
+3:- Python 3 must be installed and 'requests' module must be installed using 'pip'. Additionally,the default output is in yaml format, 'pyyaml' must be installed using 'pip'.
 
 ### Installation 
 
@@ -29,7 +33,7 @@ Note: Please refrain from altering the file names.
 
 Step 2:- To activate a PASM lookup, you have two options. First, you can place it in a lookup_plugins directory that should be located next to your play. Alternatively, you can place it inside the plugins/lookup/ directory.
 ```
-EXAMPLE:- IN centos location will be /usr/shares/ansible/plugins/lookup
+EXAMPLE:- IN centos location will be /usr/share/ansible/plugins/lookup
 ```
 
 ### configuration
@@ -38,7 +42,7 @@ Before running the plugin, there are some configurations that need to be complet
 
 Setting up the necessary environmental variables is essential in the same machine where ansible and playbook is present.
 
-1 `PASM_URL` :- API url of PASM VAULT
+1 `PASM_URL` :- Login API url of PASM VAULT
 
 2 `PASM_USERNAME` :- PASM VAULT username 
 
@@ -50,7 +54,7 @@ Setting up the necessary environmental variables is essential in the same machin
 ```
 Command to run to set up the above environment variables.
 
-export PASM_URL=<API-url-PASM-VAULT>
+export PASM_URL=<Login-API-url-PASM-VAULT>
 export PASM_USERNAME=<PASM-VAULT-USERNAME>
 export PASM_PASSWORD=<PASM-VAULT-PASSWORD>
 export PASM_CACERT_PATH=<PASM-VAULT-CA-CERT-PATH>
@@ -78,14 +82,14 @@ Ansible Playbook Example:-
   gather_facts: false
   hosts: all
   vars:
-    pasm: "{{ lookup('pasm', 'ansible-box','file')}}"
+    pasm: "{{ lookup('pasm', 'ansible-box:file','json')}}"
   tasks:
     - name: Display pasm secret
       debug:
         msg: "{{pasm}}"
 ```
 ```
-Example:- 
+Example:- Fetching single key-value secret , output format is json.
 
 var="{{ lookup('pasm', '<box-name>:<Key-value type secret>','json') }}"
 
@@ -98,7 +102,7 @@ output :-
   }
 }
 
-Example:- 
+Example:- Fetching single key-value secret , output format is yaml.
 
 var="{{ lookup('pasm', '<box-name>:<Key-value type secret>','yaml') }}"
 
@@ -108,39 +112,8 @@ box-name:
   secret-name:
     username: password
 
+Example:- Fetching single password/text/file secret , output format is json.
 
-Example:- 
-
-var="{{ lookup('pasm', '<box-name1>:<Key-value type secret1>',''<box-name2>:<Key-value type secret2>'.....','json') }}"
-
-output :-
-  var : {
-  "box-name1": {
-    "secret-name1": {
-      "username": "password"
-    }
-  },
-  "box-name2": {
-    "secret-name2": {
-      "username": "password"
-    }
-  }
-}
-
-Example:- 
-
-var="{{ lookup('pasm', '<box-name1>:<Key-value type secret1>',''<box-name2>:<Key-value type secret2>'.....','yaml') }}"
-
-output :-
-  var : 
-box-name1:
-  secret-name1:
-    username: password
-box-name2:
-  secret-name2:
-    username: password
-
-Example:-
   var="{{ lookup('pasm', '<box-name>:<password/text/file type secret>','json') }}"
 
 output :-
@@ -150,7 +123,8 @@ output :-
     "secret-name": "secret-value"
   }
 }
-Example:-
+Example:-Fetching single password/text/file secret , output format is yaml.
+
   var="{{ lookup('pasm', '<box-name>:<password/text/file type secret>','yaml') }}"
 
 output :-
@@ -158,22 +132,9 @@ output :-
 box-name:
   secret-name: secret-value
 
-Example:- var="{{ lookup('pasm', '<box-name>:<file type secret>','json') }}"  
+Example:- Fetching multiple secrets from different boxes , output format is json.
 
-output :-
-  var : {
-  "box-name": {
-    "secret-name": "secret-decoded value of file"
-  }
-}
-Example:- var="{{ lookup('pasm', '<box-name>:<file type secret>','yaml') }}"  
-
-output :-
- var :
-box-name:
-  secret-name: secret-decoded value of file
-
-Example:- var="{{ lookup('pasm', '<box-name1>:<password/text/file type secret>','<box-name1>:<Key-value type secret1>','<box-name2>:<password/text/file type secret>','<box-name2>:<Key-value type secret1>','json') }}"   
+var="{{ lookup('pasm', '<box-name1>:<password/text/file type secret>','<box-name1>:<Key-value type secret1>','<box-name2>:<password/text/file type secret>','<box-name2>:<Key-value type secret1>','json') }}"   
 
 output :-
   var :
@@ -192,7 +153,9 @@ output :-
   }
 }
 
-Example:- var="{{ lookup('pasm', '<box-name1>:<password/text/file type secret>','<box-name1>:<Key-value type secret1>','<box-name2>:<password/text/file type secret>','<box-name2>:<Key-value type secret1>','yaml') }}"   
+Example:- Fetching multiple secrets from different boxes , output format is yaml.
+
+var="{{ lookup('pasm', '<box-name1>:<password/text/file type secret>','<box-name1>:<Key-value type secret1>','<box-name2>:<password/text/file type secret>','<box-name2>:<Key-value type secret1>','yaml') }}"   
 
 output :-
   var :
@@ -209,3 +172,4 @@ box-name2:
 ## Reference
 
 [Look up plugin ansible](https://docs.ansible.com/ansible/latest/plugins/lookup.html#enabling-lookup-plugins)
+
