@@ -17,7 +17,7 @@ PASM vault ANSIBLE plugin to fetch secrets from PASM vault to ANSIBLE playbook u
   [How to download certificate ?](https://docs.hytrust.com/KeyControlVault/Online/Content/Books/Admin-Guide/KC-System-Config/Certificates/Downloading-a-KC-Certificate.html)
 
     c:- Login API URL of vault.The correct format for the API URL should be as follows:- `https://<IP>/vault/1.0/Login/<UUID>/`. Please refer below link to obtain
-  [How to get vault Login API URL ?](https://docs.hytrust.com/KeyControlVault/Online/Content/Books/Admin-Guide/Vault-Management/Retrieving-Vault-Details.html)
+  [How to get vault Login API URL ?](https://docs.hytrust.com/KeyControlVault/Online/Content/Books/Admin-Guide/Vault-Management/Viewing-Vault-Details.html)
 
 2:- Ansible must be installed.
 
